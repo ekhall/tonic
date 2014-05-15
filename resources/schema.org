@@ -1,0 +1,144 @@
+#+LANGUAGE:  en
+#+INFOJS_OPT: view:showall toc:t ltoc:t mouse:underline path:http://orgmode.org/org-info.js
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="../css/notebook.css" />
+#+LaTeX_CLASS: smarticle
+#+LaTeX_HEADER: \pdfmapfile{/home/neilsen/texmf/fonts/map/dvips/libertine/libertine.map}
+#+LaTeX_HEADER: \usepackage[ttscale=.875]{libertine}
+#+LaTeX_HEADER: \usepackage{sectsty}
+#+LaTeX_HEADER: \sectionfont{\normalfont\scshape}
+#+LaTeX_HEADER: \subsectionfont{\normalfont\itshape}
+#+EXPORT_SELECT_TAGS: export
+#+EXPORT_EXCLUDE_TAGS: noexport
+#+OPTIONS: H:2 num:nil toc:nil \n:nil @:t ::t |:t ^:{} _:{} *:t TeX:t LaTeX:t
+#+STARTUP: showall
+
+* Schema / Models
+
+** Person
+
+*** Fields and example datoms
+
+| lastName   | firstName | middleName | date-of-birth | gender | mrn |
+|------------+-----------+------------+---------------+--------+-----|
+| Smith      | Bob       | Harvey     | 1/2/1970      | M      | 124 |
+| Burnstable | Rupert    | Chunky     | 5/4/1954      | M      | 413 |
+| Spacey     | Stacey    | Mega       | 7/30/2001     | F      | 213 |
+| Hogan      | Buffy     | Jane       | 8/21/2004     | F      | 124 |
+
+*** :TRAIT:REFS: Roles, may assign multiple
+Healthcare Provider
+Patient
+
+** Location
+
+*** Fields and example datoms
+
+| Add 1           | Add 2       | Apt-or-Pob | Town      | State |   Zip | Country |   Lat | Long |
+|-----------------+-------------+------------+-----------+-------+-------+---------+-------+------|
+| 12 Main         |             | Apt 13     | Westfield | Fl    | 01423 | USA     | 140.2 | 23.0 |
+| Dept of Awesome | 13 Cedar St |            | Hooka     | OH    | 10293 | USA     |       |      |
+| 214 Blake Dr    | NW 14th     | Apt 1a     | Merry     | ND    | 54123 | USA     |       |      |
+
+** Medication
+
+*** Fields and example datoms
+
+| common-name | {Additional-names}              | {Class(es)}                     |
+|-------------+---------------------------------+---------------------------------|
+| aspirin     | {acetylsalicylic acid, Ecotrin} | {NSAID}                         |
+| carvedilol  | {Coreg}                         | {beta blocker}                  |
+| albuterol   | {Ventolin Proventil}            | {beta agonist}                  |
+| milrinone   | {Primacor}                      | {phosphodiesterase-3 inhibitor} |
+| epinephrine | {adrenaline}                    | {alpha-agonist, beta-agonist}   |
+
+*** :TRAIT:REFS: Symptoms and Side-effects, may assign multiples
+
+** Symptoms
+
+*** Fields and example datoms
+
+| common-name         |
+|---------------------|
+| shortness-of-breath |
+| headache            |
+| nausea              |
+| dizzyness           |
+
+** Side-effects
+
+*** Fields and example datoms
+
+| common-name |
+|-------------|
+| anemia      |
+| rash        |
+| tachycardia |
+| hypotension |
+
+** Phenotype (The appearnace of a condition)
+
+*** Fields and example datoms
+
+| Name                         | Diagnosed-on | Ended-on |
+|------------------------------+--------------+----------|
+| Cardiomyopathy, Dilated      | 5/4/2004     |          |
+| Cardiomyopathy, Hypertrophic | 3/4/1998     |          |
+| Rash, Urticarial             | 3/8/2001     | 5/1/2001 |
+
+** Genotype (The gentic mutation behind the condition)
+
+*** Fields and example datoms
+
+| Name   | Location   | Mutation | Diagnosed-on |
+|--------+------------+----------+--------------|
+| MYBPC3 | 1452.C     | C>T      | 6/1/2012     |
+| MYH7   | 45122.cals | G>T      | 8/1/2003     |
+
+** Encounter
+
+*** Fields and example datoms
+
+| Name             | Timestamp-begin | Timestamp-end   |
+|------------------+-----------------+-----------------|
+| Outpatient-visit | 1/2/1960,15:30  | 1/2/1960,16:00  |
+| Inpatient-stay   | 4/3/1988,07:02  | 4/17/1988,15:20 |
+| Telephone-call   | 4/3/1988,08:20  | 4/3/1988,08.30  |
+| Text-message     | 5/4/2004,15:01  |                 |
+| Null-encounter   |                 |                 |
+| Results-return   | 8/1/2011,18:00  |                 |
+
+* Relationships
+
+| First        | Relationship               | Secondary                |
+|--------------+----------------------------+--------------------------|
+| Medication   | may-cause-many             | [Symptoms, Side-effects] |
+| Side-effects | may-cause-many             | Symptoms                 |
+| Person       | may-have-many              | Symptoms                 |
+| Person       | may-have-single-sequential | Locations (as Addresses) |
+| Person       | may-have-many              | [Phenotypes, Genotypes]  |
+| Person       | may-have-many              | Persons (as Relations)   |
+| Person       | may-have-many              | Encounters               |
+
+* State Changes
+State changes most commonly occur in references to persons. State changes
+occur _through_ Encounters. For example: A person during a telephone call
+is prescribed a medication.
+
+Prior to using datomic, individual encounters were linked to date trees. I
+would imagine that this is no longer necessary? I forsee two ways to accomplish
+this. The first is to add a duration to each Encounter (e.g.
+[Encounter, Inpatient Stay: Date+Duration]).
+
+The second is to have separate Admit and Discharge Counters.
+
+A problem with the first is that until an encounter "ends" the duration is
+undefined. The duration bounds therefore wouldn't encompass the subsequent events.
+
+The problem with the second is that having two separate events (admission and
+discharge) is less clean.
+
+** Example list of events
+*** [1/1/2000,08:00-2/1/2000,10:100] Bob Smith is admitted to hospital
+*** [1/14/2000,10:00] Bob Smith is prescribed medication
+Here, a single event with an included duration encompasses the subequent
+prescription of medication.
