@@ -3,23 +3,36 @@
 
 (def host "localhost")
 (def port "4334")
-(def datomic-db "dev-db")
+(def datomic-db "dev-db2")
+(def uri (str "datomic:dev://" host ":" port "/" datomic-db))
 
 ;; Setup
 ;;--------------------------------------------------------------------
 (defn open-conn
   "Create a connection to the dev db."
   []
-  (let [uri (str "datomic:dev://" host ":" port "/" datomic-db)]
     (d/create-database uri)
-    (d/connect uri)))
+    (d/connect uri))
 
 (def conn (d/connect uri))
+
+(defn schemata
+  "Returns a list of schema-*.edn files."
+  []
+  (-> (clojure.java.io/file "resources/")
+      (file-seq)
+      (->> (filter #(.isFile %)))))
+
+(defn load-files [path f]
+  (let [files (->> path java.io.File. file-seq (sort-by f))]
+    (doseq [x files]
+      (when (.isFile x)
+        (load-file (.getCanonicalPath x))))))
 
 (defn load-schema
   "Load schema files from resources."
   []
-  (let [schema (load-file "resources/schema.edn")]
+  (let [schema (load-files "resources/" #(.getName %))]
     @(d/transact conn schema)
     conn))
 

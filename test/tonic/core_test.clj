@@ -8,7 +8,6 @@
   (with-redefs [datomic-db (str "test-db")]
     (str "datomic:dev://" host ":" port "/" datomic-db)))
 
-;; Opens db
 (defn test-open-dev-db []
   (let [uri test-uri-url]
     ;;(d/delete-database uri)
