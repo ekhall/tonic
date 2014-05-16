@@ -11,33 +11,30 @@
 (defn open-conn
   "Create a connection to the dev db."
   []
-    (d/create-database uri)
-    (d/connect uri))
+  (d/create-database uri)
+  (d/connect uri))
 
 (def conn (d/connect uri))
+(defn quickstart [] (do (open-conn) (load-schema)))
+(defn erase-db [] (d/delete-database uri))
 
-(defn schemata
-  "Returns a list of schema-*.edn files."
-  []
-  (-> (clojure.java.io/file "resources/")
-      (file-seq)
-      (->> (filter #(.isFile %)))))
+;; Load Schema
+;;--------------------------------------------------------------------
+(def resources (file-seq (clojure.java.io/file "./resources")))
 
-(defn load-files [path f]
-  (let [files (->> path java.io.File. file-seq (sort-by f))]
-    (doseq [x files]
-      (when (.isFile x)
-        (load-file (.getCanonicalPath x))))))
+(defn only-files [file-s] (filter #(.isFile %) file-s))
+
+(defn names [file-s] (map #(.getName %) file-s))
+
+(defn schemata [] (filter #(re-matches #"^schema-.+\.edn$" %)
+                          (-> resources only-files names)))
 
 (defn load-schema
   "Load schema files from resources."
   []
-  (let [schema (load-files "resources/" #(.getName %))]
+  (let [schema (load-file (apply str "resources/" (schemata)))]
     @(d/transact conn schema)
     conn))
-
-(defn quickstart [] (do (open-conn) (load-schema)))
-(defn erase-db [] (d/delete-database uri))
 
 ;; Interaction
 ;;--------------------------------------------------------------------
