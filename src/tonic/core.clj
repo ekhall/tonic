@@ -20,14 +20,13 @@
 
 ;; Load Schema
 ;;--------------------------------------------------------------------
-(def resources (file-seq (clojure.java.io/file "./resources")))
-
-(defn only-files [file-s] (filter #(.isFile %) file-s))
-
-(defn names [file-s] (map #(.getName %) file-s))
-
-(defn schemata [] (filter #(re-matches #"^schema-.+\.edn$" %)
-                          (-> resources only-files names)))
+(defn schemata
+  "Lists resource files of pattern schema-*.edn"
+  []
+  (filter #(re-matches #"^schema-.+\.edn$" %)
+          (->> (file-seq (clojure.java.io/file "./resources"))
+               (filter #(.isFile %))
+               (map #(.getName %)))))
 
 (defn load-schema
   "Load schema files from resources."
