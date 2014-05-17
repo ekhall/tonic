@@ -12,6 +12,8 @@
   :db/cardinality :db.cardinality/one
   :db/doc "A Medication's Common Name"
   :db.install/_attribute :db.part/db}
+
+ ;; These should probably not be strings.
  {:db/id #db/id[:db.part/db]
   :db/ident :medication/additionalNames
   :db/valueType :db.type/string
