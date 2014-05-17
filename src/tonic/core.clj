@@ -1,9 +1,10 @@
 (ns tonic.core
-  (:require [datomic.api :only (q db) :as d]))
+  (:require [datomic.api :only (q db) :as d]
+            [clojure.java.io :as io]))
 
 (def host "localhost")
 (def port "4334")
-(def datomic-db "dev-db2")
+(def datomic-db "dev-db-1")
 (def uri (str "datomic:dev://" host ":" port "/" datomic-db))
 
 ;; Setup
@@ -15,7 +16,7 @@
   (d/connect uri))
 
 (def conn (d/connect uri))
-(defn quickstart [] (do (open-conn) (load-schema)))
+
 (defn erase-db [] (d/delete-database uri))
 
 ;; Load Schema
@@ -29,12 +30,35 @@
                (map #(.getName %)))))
 
 (defn load-schema
-  "Load schema files from resources."
+  "Loads a sequence of schamta files into Datomic"
+  []
+  (doseq [x (vec (schemata))]
+    (let [schema (load-file (apply str "resources/" x))]
+      @(d/transact conn schema)
+      conn)))
+
+(defn list-schema
+  []
+  (doseq [x (vec (schemata))]
+    (let [schema (load-file (apply str "resources/" x))]
+      (println schema))))
+
+(defn iter-all-files-lazy [path]
+  (lazy-seq
+    (cons path
+      (when (.isDirectory (java.io.File. path))
+        (mapcat
+          (comp iter-all-files-lazy #(. % getCanonicalPath))
+          (.listFiles (java.io.File. path)))))))
+
+(defn load-schema-old
+  "Load schema files from resources. Likely only works with one file now"
   []
   (let [schema (load-file (apply str "resources/" (schemata)))]
     @(d/transact conn schema)
     conn))
 
+(defn quickstart [] (do (open-conn) (load-schema)))
 ;; Interaction
 ;;--------------------------------------------------------------------
 (defn add-person
