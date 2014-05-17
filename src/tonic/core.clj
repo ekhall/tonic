@@ -4,7 +4,7 @@
 
 (def host "localhost")
 (def port "4334")
-(def datomic-db "dev-db-1")
+(def datomic-db "dev-db-a")
 (def uri (str "datomic:dev://" host ":" port "/" datomic-db))
 
 ;; Setup
@@ -50,13 +50,6 @@
         (mapcat
           (comp iter-all-files-lazy #(. % getCanonicalPath))
           (.listFiles (java.io.File. path)))))))
-
-(defn load-schema-old
-  "Load schema files from resources. Likely only works with one file now"
-  []
-  (let [schema (load-file (apply str "resources/" (schemata)))]
-    @(d/transact conn schema)
-    conn))
 
 (defn quickstart [] (do (open-conn) (load-schema)))
 ;; Interaction

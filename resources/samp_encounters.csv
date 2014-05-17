@@ -1,0 +1,7 @@
+Name,Timestamp-begin,Timestamp-end
+Outpatient-visit,"1/2/1960,15:30","1/2/1960,16:00"
+Inpatient-stay,"4/3/1988,07:02","4/17/1988,15:20"
+Telephone-call,"4/3/1988,08:20","4/3/1988,08.30"
+Text-message,"5/4/2004,15:01",
+Null-encounter,,
+Results-return,"8/1/2011,18:00",

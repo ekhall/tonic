@@ -1,0 +1,6 @@
+common-name,{Additional-names},{Class(es)}
+aspirin,"{acetylsalicylic acid, Ecotrin}",{NSAID}
+carvedilol,{Coreg},{beta blocker}
+albuterol,{Ventolin Proventil},{beta agonist}
+milrinone,{Primacor},{phosphodiesterase-3 inhibitor}
+epinephrine,{adrenaline},"{alpha-agonist, beta-agonist}"
